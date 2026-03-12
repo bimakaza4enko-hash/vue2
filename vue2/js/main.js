@@ -95,3 +95,47 @@ Vue.component('note-card', {
                 });
             }
         },
+                    updateItem(index, value) {
+            if (this.note.status === 'done') return;
+            this.localItems[index].text = value;
+        },
+        saveItem(index) {
+            if (this.note.status === 'done') return;
+            if (this.localItems[index].text.trim()) {
+                this.$emit('update', {
+                    id: this.note.id,
+                    items: this.localItems
+                });
+            }
+        },
+        formatDate(dateString) {
+            return new Date(dateString).toLocaleString();
+        }
+    }
+});
+
+Vue.component('note-form', {
+    template: `
+        <div class="note-form">
+            <input 
+                type="text" 
+                v-model="title" 
+                placeholder="Заголовок заметки"
+                class="title-input"
+            >
+            <div class="items">
+                <div v-for="(item, index) in items" :key="index" class="item-input">
+                    <input 
+                        type="text" 
+                        v-model="item.text" 
+                        :placeholder="'Пункт ' + (index + 1)"
+                    >
+                    <button @click="removeItem(index)" v-if="items.length > 3">✕</button>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button @click="addItem" :disabled="items.length >= 5">+ Добавить пункт</button>
+                <button @click="submitForm" :disabled="!isValid">Создать заметку</button>
+            </div>
+        </div>
+    `,
