@@ -139,3 +139,52 @@ Vue.component('note-form', {
             </div>
         </div>
     `,
+        data() {
+        return {
+            title: '',
+            items: [
+                { text: '', completed: false },
+                { text: '', completed: false },
+                { text: '', completed: false }
+            ]
+        };
+    },
+    computed: {
+        isValid() {
+            return this.title.trim() && 
+                   this.items.every(item => item.text.trim()) &&
+                   this.items.length >= 3 &&
+                   this.items.length <= 5;
+        }
+    },
+    methods: {
+        addItem() {
+            if (this.items.length < 5) {
+                this.items.push({ text: '', completed: false });
+            }
+        },
+        removeItem(index) {
+            if (this.items.length > 3) {
+                this.items.splice(index, 1);
+            }
+        },
+        submitForm() {
+            if (!this.isValid) return;
+            
+            this.$emit('add-note', {
+                title: this.title,
+                items: this.items.map(item => ({ 
+                    text: item.text, 
+                    completed: false 
+                }))
+            });
+            
+            this.title = '';
+            this.items = [
+                { text: '', completed: false },
+                { text: '', completed: false },
+                { text: '', completed: false }
+            ];
+        }
+    }
+});
