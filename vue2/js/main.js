@@ -245,3 +245,50 @@ let app = new Vue({
                 ];
             }
         },
+                saveToStorage() {
+            localStorage.setItem('kanban-notes', JSON.stringify(this.notes));
+        },
+        notesByStatus(status) {
+            return this.notes.filter(note => note.status === status);
+        },
+        notesInColumn(status) {
+            return this.notesByStatus(status).length;
+        },
+        addNote(noteData) {
+            const newNote = {
+                id: Date.now(),
+                title: noteData.title,
+                items: noteData.items,
+                status: 'new',
+                completedAt: null
+            };
+            this.notes.push(newNote);
+            this.saveToStorage();
+        },
+        updateNote(updateData) {
+            const index = this.notes.findIndex(n => n.id === updateData.id);
+            if (index !== -1) {
+                this.notes[index].items = updateData.items;
+                if (updateData.status) {
+                    this.notes[index].status = updateData.status;
+                }
+                this.saveToStorage();
+            }
+        },
+        deleteNote(id) {
+            this.notes = this.notes.filter(note => note.id !== id);
+            this.saveToStorage();
+        },
+        moveToDone(data) {
+            const index = this.notes.findIndex(n => n.id === data.id);
+            if (index !== -1) {
+                this.notes[index].status = 'done';
+                this.notes[index].completedAt = data.completedAt;
+                this.saveToStorage();
+            }
+        }
+    },
+    mounted() {
+        this.loadFromStorage();
+    }
+});
