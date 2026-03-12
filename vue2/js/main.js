@@ -188,3 +188,60 @@ Vue.component('note-form', {
         }
     }
 });
+
+let app = new Vue({
+    el: '#app',
+    data: {
+        notes: []
+    },
+    computed: {
+        columnBlocked() {
+            const inProgressCount = this.notesByStatus('inProgress').length;
+            const newNotes = this.notesByStatus('new');
+            
+            if (inProgressCount >= 5) {
+                const hasProgressOver50 = newNotes.some(note => {
+                    const completed = note.items.filter(i => i.completed).length;
+                    const percent = (completed / note.items.length) * 100;
+                    return percent > 50;
+                });
+                
+                if (hasProgressOver50) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    },
+    methods: {
+        loadFromStorage() {
+            const saved = localStorage.getItem('kanban-notes');
+            if (saved) {
+                this.notes = JSON.parse(saved);
+            } else {
+                this.notes = [
+                    {
+                        id: Date.now() - 1000,
+                        title: 'Пример задачи 1',
+                        items: [
+                            { text: 'Изучить Vue.js', completed: false },
+                            { text: 'Написать код', completed: false },
+                            { text: 'Проверить работу', completed: false }
+                        ],
+                        status: 'new',
+                        completedAt: null
+                    },
+                    {
+                        id: Date.now() - 2000,
+                        title: 'Пример задачи 2',
+                        items: [
+                            { text: 'Создать компоненты', completed: true },
+                            { text: 'Настроить обработку событий', completed: true },
+                            { text: 'Добавить стили', completed: false }
+                        ],
+                        status: 'inProgress',
+                        completedAt: null
+                    }
+                ];
+            }
+        },
