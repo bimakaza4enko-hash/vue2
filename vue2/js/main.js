@@ -66,4 +66,32 @@ Vue.component('note-card', {
             }
         }
     },
+        methods: {
+        toggleItem(index) {
+            if (this.note.status === 'done') return;
 
+            this.localItems[index].completed = !this.localItems[index].completed;
+
+            if (this.note.status === 'new') {
+                const completedCount = this.localItems.filter(item => item.completed).length;
+                const percent = (completedCount / this.localItems.length) * 100;
+
+                if (percent > 50) {
+                    this.$emit('update', {
+                        id: this.note.id,
+                        items: this.localItems,
+                        status: 'inProgress'
+                    });
+                } else {
+                    this.$emit('update', {
+                        id: this.note.id,
+                        items: this.localItems
+                    });
+                }
+            } else {
+                this.$emit('update', {
+                    id: this.note.id,
+                    items: this.localItems
+                });
+            }
+        },
