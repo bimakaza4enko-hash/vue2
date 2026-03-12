@@ -57,3 +57,66 @@
             </div>
         </div>
     </div>
+        <template id="note-card-template">
+        <div class="card" :class="{ completed: completed }">
+            <div class="card-header">
+                <h3>{{ note.title }}</h3>
+                <button class="delete-btn" @click="$emit('delete', note.id)">✕</button>
+            </div>
+            
+            <div class="todo-list">
+                <div v-for="(item, index) in note.items" :key="index" class="todo-item">
+                    <input 
+                        type="checkbox" 
+                        :checked="item.completed"
+                        @change="toggleItem(index)"
+                        :disabled="note.status === 'done'"
+                    >
+                    <input 
+                        type="text" 
+                        v-model="item.text" 
+                        @blur="updateItem(index, item.text)"
+                        :disabled="note.status === 'done'"
+                        placeholder="Пункт задачи"
+                    >
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <div class="progress">
+                    Прогресс: {{ completedCount }}/{{ note.items.length }}
+                    ({{ progressPercent }}%)
+                </div>
+                <div v-if="note.completedAt" class="completed-date">
+                      Завершено: {{ formatDate(note.completedAt) }}
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="note-form-template">
+        <div class="note-form">
+            <input 
+                type="text" 
+                v-model="title" 
+                placeholder="Заголовок заметки"
+                class="title-input"
+            >
+            <div class="items">
+                <div v-for="(item, index) in items" :key="index" class="item-input">
+                    <input 
+                        type="text" 
+                        v-model="item.text" 
+                        :placeholder="'Пункт ' + (index + 1)"
+                    >
+                    <button @click="removeItem(index)" v-if="items.length > 3">✕</button>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button @click="addItem" :disabled="items.length >= 5">+ Добавить пункт</button>
+                <button @click="submitForm" :disabled="!isValid">Создать заметку</button>
+            </div>
+        </div>
+    </template>
+</body>
+</html>
