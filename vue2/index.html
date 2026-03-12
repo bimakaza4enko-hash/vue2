@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban заметки</title>
+    <link rel="stylesheet" href="css/main.css">
+    <script src="js/vue.js" defer></script>
+    <script src="js/main.js" defer></script>
+</head>
+<body>
+    <div id="app">
+        <h1>Kanban доска заметок</h1>
+        
+        <div class="board">
+            <div class="column">
+                <h2>Новые заметки <span class="limit">({{ notesInColumn('new') }}/3)</span></h2>
+                <div v-if="columnBlocked" class="blocked-message">
+                    Колонка заблокирована
+                </div>
+                <div class="cards">
+                    <note-card
+                        v-for="note in notesByStatus('new')"
+                        :key="note.id"
+                        :note="note"
+                        @update="updateNote"
+                        @delete="deleteNote"
+                        @move-to-done="moveToDone"
+                        :blocked="columnBlocked"
+                    ></note-card>
+                </div>
+                <note-form v-if="notesByStatus('new').length < 3 && !columnBlocked" @add-note="addNote"></note-form>
+            </div>
+            <div class="column">
+                <h2>В работе <span class="limit">({{ notesInColumn('inProgress') }}/5)</span></h2>
+                <div class="cards">
+                    <note-card
+                        v-for="note in notesByStatus('inProgress')"
+                        :key="note.id"
+                        :note="note"
+                        @update="updateNote"
+                        @delete="deleteNote"
+                        @move-to-done="moveToDone"
+                    ></note-card>
+                </div>
+            </div>
+            <div class="column">
+                <h2>Завершённые</h2>
+                <div class="cards">
+                    <note-card
+                        v-for="note in notesByStatus('done')"
+                        :key="note.id"
+                        :note="note"
+                        @delete="deleteNote"
+                    ></note-card>
+                </div>
+            </div>
+        </div>
+    </div>
+    <template id="note-card-template">
+        <div class="card" :class="{ completed: completed }">
+            <div class="card-header">
+                <h3>{{ note.title }}</h3>
+                <button class="delete-btn" @click="$emit('delete', note.id)">✕</button>
+            </div>
+            
+            <div class="todo-list">
+                <div v-for="(item, index) in note.items" :key="index" class="todo-item">
+                    <input 
+                        type="checkbox" 
+                        :checked="item.completed"
+                        @change="toggleItem(index)"
+                        :disabled="note.status === 'done'"
+                    >
+                    <input 
+                        type="text" 
+                        v-model="item.text" 
+                        @blur="updateItem(index, item.text)"
+                        :disabled="note.status === 'done'"
+                        placeholder="Пункт задачи"
+                    >
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <div class="progress">
+                    Прогресс: {{ completedCount }}/{{ note.items.length }}
+                    ({{ progressPercent }}%)
+                </div>
+                <div v-if="note.completedAt" class="completed-date">
+                      Завершено: {{ formatDate(note.completedAt) }}
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="note-form-template">
+        <div class="note-form">
+            <input 
+                type="text" 
+                v-model="title" 
+                placeholder="Заголовок заметки"
+                class="title-input"
+            >
+            <div class="items">
+                <div v-for="(item, index) in items" :key="index" class="item-input">
+                    <input 
+                        type="text" 
+                        v-model="item.text" 
+                        :placeholder="'Пункт ' + (index + 1)"
+                    >
+                    <button @click="removeItem(index)" v-if="items.length > 3">✕</button>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button @click="addItem" :disabled="items.length >= 5">+ Добавить пункт</button>
+                <button @click="submitForm" :disabled="!isValid">Создать заметку</button>
+            </div>
+        </div>
+    </template>
+</body>
+</html>
