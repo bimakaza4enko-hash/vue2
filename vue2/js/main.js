@@ -3,43 +3,7 @@ Vue.component('note-card', {
         note: Object,
         blocked: Boolean
     },
-    template: `
-        <div class="card" :class="{ completed: completed }">
-            <div class="card-header">
-                <h3>{{ note.title }}</h3>
-                <button class="delete-btn" @click="$emit('delete', note.id)">✕</button>
-            </div>
-            
-            <div class="todo-list">
-                <div v-for="(item, index) in note.items" :key="index" class="todo-item">
-                    <input 
-                        type="checkbox" 
-                        :checked="item.completed"
-                        @change="toggleItem(index)"
-                        :disabled="note.status === 'done'"
-                    >
-                    <input 
-                        type="text" 
-                        :value="item.text"
-                        @input="updateItem(index, $event.target.value)"
-                        @blur="saveItem(index)"
-                        :disabled="note.status === 'done'"
-                        placeholder="Пункт задачи"
-                    >
-                </div>
-            </div>
-
-            <div class="card-footer">
-                <div class="progress">
-                    Прогресс: {{ completedCount }}/{{ note.items.length }}
-                    ({{ progressPercent }}%)
-                </div>
-                <div v-if="note.completedAt" class="completed-date">
-                    Завершено: {{ formatDate(note.completedAt) }}
-                </div>
-            </div>
-        </div>
-    `,
+    template: '#note-card-template',
     data() {
         return {
             localItems: JSON.parse(JSON.stringify(this.note.items))
@@ -115,31 +79,14 @@ Vue.component('note-card', {
 });
 
 Vue.component('note-form', {
-    template: `
-        <div class="note-form">
-            <input 
-                type="text" 
-                v-model="title" 
-                placeholder="Заголовок заметки"
-                class="title-input"
-            >
-            <div class="items">
-                <div v-for="(item, index) in items" :key="index" class="item-input">
-                    <input 
-                        type="text" 
-                        v-model="item.text" 
-                        :placeholder="'Пункт ' + (index + 1)"
-                    >
-                    <button @click="removeItem(index)" v-if="items.length > 3">✕</button>
-                </div>
-            </div>
-            <div class="form-actions">
-                <button @click="addItem" :disabled="items.length >= 5">+ Добавить пункт</button>
-                <button @click="submitForm" :disabled="!isValid">Создать заметку</button>
-            </div>
-        </div>
-    `,
-        data() {
+    props: {
+        disabled: {
+            type: Boolean,
+            default: false
+        }
+    },
+    template: '#note-form-template',
+    data() {
         return {
             title: '',
             items: [
@@ -159,23 +106,26 @@ Vue.component('note-form', {
     },
     methods: {
         addItem() {
+            if (this.disabled) return;
             if (this.items.length < 5) {
                 this.items.push({ text: '', completed: false });
             }
         },
         removeItem(index) {
+            if (this.disabled) return;
             if (this.items.length > 3) {
                 this.items.splice(index, 1);
             }
         },
         submitForm() {
+            if (this.disabled) return;
             if (!this.isValid) return;
-            
+
             this.$emit('add-note', {
                 title: this.title,
-                items: this.items.map(item => ({ 
-                    text: item.text, 
-                    completed: false 
+                items: this.items.map(item => ({
+                    text: item.text,
+                    completed: false
                 }))
             });
             
@@ -196,21 +146,7 @@ let app = new Vue({
     },
     computed: {
         columnBlocked() {
-            const inProgressCount = this.notesByStatus('inProgress').length;
-            const newNotes = this.notesByStatus('new');
-            
-            if (inProgressCount >= 5) {
-                const hasProgressOver50 = newNotes.some(note => {
-                    const completed = note.items.filter(i => i.completed).length;
-                    const percent = (completed / note.items.length) * 100;
-                    return percent > 50;
-                });
-                
-                if (hasProgressOver50) {
-                    return true;
-                }
-            }
-            return false;
+            return this.notesByStatus('inProgress').length >= 5;
         }
     },
     methods: {
