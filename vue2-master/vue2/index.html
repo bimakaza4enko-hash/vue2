@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban заметки</title>
+    <link rel="stylesheet" href="css/main.css">
+    <script src="js/vue.js" defer></script>
+    <script src="components/NoteCard.js" defer></script>
+    <script src="components/NoteForm.js" defer></script>
+    <script src="components/KanbanBoard.js" defer></script>
+    <script src="js/main.js" defer></script>
+</head>
+<body>
+    <div id="app">
+        <h1>Kanban доска заметок</h1>
+        <kanban-board
+            :notes="notes"
+            :column-blocked="columnBlocked"
+            @add-note="addNote"
+            @update="updateNote"
+            @delete="deleteNote"
+            @move-to-done="moveToDone"
+        ></kanban-board>
+    </div>
+</body>
+</html>
